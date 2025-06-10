@@ -1,0 +1,447 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Calculadora Interactiva de Combinatoria</title>
+    
+    <!-- Tailwind CSS para un diseño rápido y responsivo -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    
+    <!-- Google Fonts: Inter para una tipografía limpia -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+
+    <style>
+        /* Estilos personalizados y animaciones */
+        html {
+            scroll-behavior: smooth;
+        }
+        body {
+            font-family: 'Inter', sans-serif;
+            display: flex;
+            flex-direction: column;
+            min-height: 100vh;
+        }
+        .container {
+            flex-grow: 1;
+        }
+
+        /* Paleta de colores pastel */
+        :root {
+            --bg-color: #f0f4f8; /* Fondo principal */
+            --card-bg: #ffffff; /* Fondo de tarjetas */
+            --primary: #6c63ff; /* Color primario (morado suave) */
+            --primary-hover: #574bda;
+            --secondary: #ff6b6b; /* Color secundario (coral) */
+            --text-dark: #333;
+            --text-light: #555;
+            --border-color: #e2e8f0;
+        }
+
+        /* Animación para la aparición de elementos */
+        @keyframes fadeIn {
+            from {
+                opacity: 0;
+                transform: translateY(10px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .fade-in {
+            animation: fadeIn 0.5s ease-in-out forwards;
+        }
+
+        /* Estilos para los elementos de la simulación */
+        .combo-item {
+            background-color: var(--bg-color);
+            border: 1px solid var(--border-color);
+            padding: 0.5rem;
+            margin: 0.25rem;
+            border-radius: 0.5rem;
+            font-size: 1.25rem;
+            transition: transform 0.2s ease, box-shadow 0.2s ease;
+        }
+
+        .combo-item:hover {
+            transform: scale(1.1);
+            box-shadow: 0 4px 10px rgba(0,0,0,0.1);
+        }
+
+        /* Estilos para los campos de entrada y selectores */
+        .custom-input {
+            border-color: var(--border-color);
+            transition: border-color 0.3s, box-shadow 0.3s;
+        }
+        .custom-input:focus {
+            border-color: var(--primary);
+            box-shadow: 0 0 0 3px rgba(108, 99, 255, 0.2);
+            outline: none;
+        }
+
+        /* Scrollbar personalizada para un look más limpio */
+        ::-webkit-scrollbar {
+            width: 8px;
+        }
+        ::-webkit-scrollbar-track {
+            background: var(--bg-color);
+        }
+        ::-webkit-scrollbar-thumb {
+            background: #cbd5e1;
+            border-radius: 4px;
+        }
+        ::-webkit-scrollbar-thumb:hover {
+            background: #a0aec0;
+        }
+    </style>
+</head>
+<body class="bg-gray-100" style="background-color: var(--bg-color); color: var(--text-dark);">
+
+    <div class="container mx-auto p-4 md:p-8 max-w-5xl">
+
+        <!-- Título principal -->
+        <header class="text-center mb-8">
+            <h1 class="text-3xl md:text-4xl font-bold" style="color: var(--primary);">
+                Explorador de Combinatoria 🎲✨
+            </h1>
+            <p class="text-md md:text-lg mt-2" style="color: var(--text-light);">
+                Una herramienta visual para entender permutaciones, variaciones y combinaciones.
+            </p>
+        </header>
+
+        <!-- Panel de control -->
+        <main class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+            <div class="lg:col-span-1 bg-white p-6 rounded-2xl shadow-lg" style="background-color: var(--card-bg); border: 1px solid var(--border-color);">
+                <h2 class="text-xl font-semibold mb-4 border-b pb-2" style="border-color: var(--border-color);">Configuración</h2>
+                
+                <!-- Selección del tipo de cálculo -->
+                <div class="mb-4">
+                    <label for="calcType" class="block text-sm font-medium mb-1" style="color: var(--text-light);">Tipo de Cálculo</label>
+                    <select id="calcType" class="w-full p-3 rounded-lg bg-gray-50 custom-input">
+                        <option value="variations">Variaciones (Vn,k)</option>
+                        <option value="variations-rep">Variaciones con Repetición (VRn,k)</option>
+                        <option value="permutations">Permutaciones (Pn)</option>
+                        <option value="permutations-circ">Permutaciones Circulares (PCn)</option>
+                        <option value="combinations">Combinaciones (Cn,k)</option>
+                        <option value="combinations-rep">Combinaciones con Repetición (CRn,k)</option>
+                    </select>
+                </div>
+                
+                <!-- Entradas para n y k -->
+                <div class="grid grid-cols-2 gap-4 mb-4">
+                    <div>
+                        <label for="n" class="block text-sm font-medium mb-1" style="color: var(--text-light);">Total de elementos (n)</label>
+                        <input type="number" id="n" min="1" max="10" value="4" class="w-full p-3 rounded-lg bg-gray-50 custom-input">
+                    </div>
+                    <div id="k-container">
+                        <label for="k" class="block text-sm font-medium mb-1" style="color: var(--text-light);">Tamaño del grupo (k)</label>
+                        <input type="number" id="k" min="1" max="10" value="2" class="w-full p-3 rounded-lg bg-gray-50 custom-input">
+                    </div>
+                </div>
+
+                <!-- Selección del tipo de elemento -->
+                 <div class="mb-4">
+                    <label for="elementType" class="block text-sm font-medium mb-1" style="color: var(--text-light);">Tipo de Elementos</label>
+                    <select id="elementType" class="w-full p-3 rounded-lg bg-gray-50 custom-input">
+                        <option value="emojis">Emojis</option>
+                        <option value="numeros">Números</option>
+                        <option value="letras">Letras</option>
+                        <option value="cartas">Cartas</option>
+                    </select>
+                </div>
+                
+                <!-- Entrada para los elementos (emojis/letras/números) -->
+                <div class="mb-6">
+                    <label for="elements" class="block text-sm font-medium mb-1" style="color: var(--text-light);">Elementos a combinar</label>
+                    <input type="text" id="elements" class="w-full p-3 rounded-lg bg-gray-50 custom-input text-xl">
+                </div>
+                
+                <!-- Botón de cálculo -->
+                <button id="calculateBtn" class="w-full text-white font-bold py-3 px-4 rounded-lg transition-transform transform hover:scale-105" style="background-color: var(--primary);">
+                    Calcular y Visualizar
+                </button>
+            </div>
+
+            <!-- Panel de resultados -->
+            <div id="results-panel" class="lg:col-span-2 space-y-6" style="display: none;">
+                <!-- Detalles del cálculo -->
+                <div class="bg-white p-6 rounded-2xl shadow-lg fade-in" style="background-color: var(--card-bg); border: 1px solid var(--border-color);">
+                    <h3 class="text-xl font-semibold mb-3">🔢 Detalles del Cálculo</h3>
+                    <div id="formula-details" class="text-left p-4 rounded-lg space-y-2" style="background-color: var(--bg-color);"></div>
+                </div>
+                
+                <!-- Simulación visual -->
+                <div class="bg-white p-6 rounded-2xl shadow-lg fade-in" style="background-color: var(--card-bg); border: 1px solid var(--border-color);">
+                    <h3 class="text-xl font-semibold mb-3">🎨 Simulación Visual (<span id="result-count">0</span> resultados)</h3>
+                    <div id="visual-simulation" class="flex flex-wrap justify-center items-center p-4 rounded-lg min-h-[100px]" style="background-color: var(--bg-color);">
+                        <!-- Los resultados visuales se insertarán aquí -->
+                    </div>
+                </div>
+            </div>
+
+             <!-- Mensaje inicial -->
+            <div id="initial-message" class="lg:col-span-2 flex items-center justify-center bg-white p-6 rounded-2xl shadow-lg" style="background-color: var(--card-bg); border: 1px solid var(--border-color);">
+                <div class="text-center">
+                    <div class="text-6xl mb-4">🤔</div>
+                    <h2 class="text-2xl font-bold text-gray-700">¡Listo para explorar!</h2>
+                    <p class="text-gray-500 mt-2">Configura los parámetros a la izquierda y presiona "Calcular" para ver la magia.</p>
+                </div>
+            </div>
+
+        </main>
+    </div>
+
+    <!-- Pie de página -->
+    <footer class="w-full text-center p-4 mt-8" style="color: var(--text-light); background-color: var(--bg-color); border-top: 1px solid var(--border-color);">
+        <p>Autor: <strong>Msc. Néstor Fabio Montoya Palacios</strong></p>
+        <p class="text-sm mt-1">Una herramienta educativa para explorar el mundo de la combinatoria.</p>
+    </footer>
+
+    <script>
+        // --- SELECCIÓN DE ELEMENTOS DEL DOM ---
+        const calcTypeSelect = document.getElementById('calcType');
+        const nInput = document.getElementById('n');
+        const kInput = document.getElementById('k');
+        const elementTypeSelect = document.getElementById('elementType');
+        const elementsInput = document.getElementById('elements');
+        const calculateBtn = document.getElementById('calculateBtn');
+        const kContainer = document.getElementById('k-container');
+        
+        const resultsPanel = document.getElementById('results-panel');
+        const initialMessage = document.getElementById('initial-message');
+        const formulaDetails = document.getElementById('formula-details');
+        const visualSimulation = document.getElementById('visual-simulation');
+        const resultCountSpan = document.getElementById('result-count');
+
+        // --- CONJUNTOS DE ELEMENTOS PREDETERMINADOS ---
+        const elementSets = {
+            emojis: '🍎🍌🍇🍓🥝🥥🍍🥭',
+            numeros: '1234567890',
+            letras: 'ABCDEFGHIJKLMNOPQRSTUVWXYZ',
+            cartas: '♠️♥️♦️♣️'
+        };
+
+        // --- FUNCIONES MATEMÁTICAS ---
+
+        /**
+         * Calcula el factorial de un número.
+         * @param {number} num - El número para calcular el factorial.
+         * @returns {number} El resultado del factorial.
+         */
+        function factorial(num) {
+            if (num < 0) return -1;
+            if (num === 0) return 1;
+            let result = 1;
+            for (let i = 2; i <= num; i++) {
+                result *= i;
+            }
+            return result;
+        }
+
+        // --- GENERADORES DE CONJUNTOS (Lógica de combinatoria) ---
+
+        function generateVariations(arr, k) {
+            const variations = [];
+            function find(prefix) {
+                if (prefix.length === k) { variations.push(prefix); return; }
+                for (let i = 0; i < arr.length; i++) {
+                    if (!prefix.includes(arr[i])) { find([...prefix, arr[i]]); }
+                }
+            }
+            find([]);
+            return variations;
+        }
+        
+        function generateVariationsWithRepetition(arr, k) {
+            const variations = [];
+            function find(prefix) {
+                if (prefix.length === k) { variations.push(prefix); return; }
+                for (let i = 0; i < arr.length; i++) { find([...prefix, arr[i]]); }
+            }
+            find([]);
+            return variations;
+        }
+
+        function generatePermutations(arr) {
+            if (arr.length === 0) return [[]];
+            const firstEl = arr[0];
+            const rest = arr.slice(1);
+            const permsWithoutFirst = generatePermutations(rest);
+            const allPermutations = [];
+            permsWithoutFirst.forEach(perm => {
+                for (let i = 0; i <= perm.length; i++) {
+                    const permWithFirst = [...perm.slice(0, i), firstEl, ...perm.slice(i)];
+                    allPermutations.push(permWithFirst);
+                }
+            });
+            return allPermutations;
+        }
+
+        function generateCombinations(arr, k) {
+            if (k > arr.length || k <= 0) return [];
+            if (k === arr.length) return [arr];
+            if (k === 1) return arr.map(item => [item]);
+            const combs = [];
+            const head = arr[0];
+            const tail = arr.slice(1);
+            const combsWithHead = generateCombinations(tail, k - 1).map(c => [head, ...c]);
+            const combsWithoutHead = generateCombinations(tail, k);
+            return [...combsWithHead, ...combsWithoutHead];
+        }
+
+        function generateCombinationsWithRepetition(arr, k) {
+             const combinations = [];
+             function find(start, prefix) {
+                if (prefix.length === k) { combinations.push(prefix); return; }
+                for (let i = start; i < arr.length; i++) { find(i, [...prefix, arr[i]]); }
+            }
+            find(0, []);
+            return combinations;
+        }
+
+        // --- LÓGICA DE LA INTERFAZ ---
+
+        /**
+         * Actualiza la visibilidad del campo 'k' según el tipo de cálculo.
+         */
+        function updateKVisibility() {
+            const type = calcTypeSelect.value;
+            const needsK = type.includes('variations') || type.includes('combinations');
+            kContainer.style.display = needsK ? 'block' : 'none';
+        }
+
+        /**
+         * Actualiza el campo de texto de los elementos según el tipo seleccionado.
+         */
+        function updateElementInput() {
+            const selectedType = elementTypeSelect.value;
+            elementsInput.value = elementSets[selectedType];
+        }
+
+        /**
+         * Realiza el cálculo principal y actualiza la UI.
+         */
+        function handleCalculation() {
+            // 1. Obtener valores y validarlos
+            const type = calcTypeSelect.value;
+            const n = parseInt(nInput.value);
+            const k = parseInt(kInput.value);
+            const elements = [...new Set(Array.from(elementsInput.value))]; // Usa Set para elementos únicos
+
+            if (isNaN(n) || n <= 0) {
+                alert("Por favor, introduce un valor válido para 'n'.");
+                return;
+            }
+            
+            const needsK = kContainer.style.display !== 'none';
+            if (needsK && (isNaN(k) || k <= 0)) {
+                alert("Por favor, introduce un valor válido para 'k'.");
+                return;
+            }
+            
+            if (elements.length < n) {
+                alert(`Debes proporcionar al menos ${n} caracteres únicos en el campo 'Elementos a combinar'.`);
+                return;
+            }
+            
+            const elementSet = elements.slice(0, n);
+            let result = 0;
+            let formulaHTML = '';
+            let generatedSets = [];
+
+            // 2. Realizar el cálculo según el tipo seleccionado
+            switch(type) {
+                case 'variations':
+                    if (k > n) { alert("Error: k no puede ser mayor que n para variaciones."); return; }
+                    result = factorial(n) / factorial(n - k);
+                    formulaHTML = `<p><strong>Fórmula:</strong> V<sub>n,k</sub> = n! / (n - k)!</p><p><strong>Cálculo:</strong> V<sub>${n},${k}</sub> = ${n}! / (${n} - ${k})!</p><p><strong>Paso a paso:</strong> ${factorial(n)} / ${factorial(n-k)}</p><p class="font-bold text-lg mt-2"><strong>Resultado:</strong> ${result}</p>`;
+                    generatedSets = generateVariations(elementSet, k);
+                    break;
+                
+                case 'variations-rep':
+                    result = Math.pow(n, k);
+                    formulaHTML = `<p><strong>Fórmula:</strong> VR<sub>n,k</sub> = n<sup>k</sup></p><p><strong>Cálculo:</strong> VR<sub>${n},${k}</sub> = ${n}<sup>${k}</sup></p><p class="font-bold text-lg mt-2"><strong>Resultado:</strong> ${result}</p>`;
+                    generatedSets = generateVariationsWithRepetition(elementSet, k);
+                    break;
+
+                case 'permutations':
+                    result = factorial(n);
+                    formulaHTML = `<p><strong>Fórmula:</strong> P<sub>n</sub> = n!</p><p><strong>Cálculo:</strong> P<sub>${n}</sub> = ${n}!</p><p class="font-bold text-lg mt-2"><strong>Resultado:</strong> ${result}</p>`;
+                    generatedSets = generatePermutations(elementSet);
+                    break;
+
+                case 'permutations-circ':
+                    if (n === 0) { result = 0; } else { result = factorial(n - 1); }
+                    formulaHTML = `<p><strong>Fórmula:</strong> PC<sub>n</sub> = (n - 1)!</p><p><strong>Cálculo:</strong> PC<sub>${n}</sub> = (${n} - 1)!</p><p class="font-bold text-lg mt-2"><strong>Resultado:</strong> ${result}</p>`;
+                    generatedSets = generatePermutations(elementSet).slice(0, result);
+                    break;
+
+                case 'combinations':
+                    if (k > n) { alert("Error: k no puede ser mayor que n para combinaciones."); return; }
+                    result = factorial(n) / (factorial(k) * factorial(n - k));
+                    formulaHTML = `<p><strong>Fórmula:</strong> C<sub>n,k</sub> = n! / (k! * (n - k)!)</p><p><strong>Cálculo:</strong> C<sub>${n},${k}</sub> = ${n}! / (${k}! * (${n} - ${k})!)</p><p><strong>Paso a paso:</strong> ${factorial(n)} / (${factorial(k)} * ${factorial(n-k)})</p><p class="font-bold text-lg mt-2"><strong>Resultado:</strong> ${result}</p>`;
+                    generatedSets = generateCombinations(elementSet, k);
+                    break;
+
+                case 'combinations-rep':
+                    result = factorial(n + k - 1) / (factorial(k) * factorial(n - 1));
+                    formulaHTML = `<p><strong>Fórmula:</strong> CR<sub>n,k</sub> = (n + k - 1)! / (k! * (n - 1)!)</p><p><strong>Cálculo:</strong> CR<sub>${n},${k}</sub> = (${n} + ${k} - 1)! / (${k}! * (${n} - 1)!)</p><p><strong>Paso a paso:</strong> ${factorial(n+k-1)} / (${factorial(k)} * ${factorial(n-1)})</p><p class="font-bold text-lg mt-2"><strong>Resultado:</strong> ${result}</p>`;
+                    generatedSets = generateCombinationsWithRepetition(elementSet, k);
+                    break;
+            }
+
+            // 3. Mostrar los resultados en la UI
+            displayResults(formulaHTML, generatedSets);
+        }
+
+        /**
+         * Muestra los resultados en el panel correspondiente.
+         */
+        function displayResults(formulaHTML, generatedSets) {
+            initialMessage.style.display = 'none';
+            resultsPanel.style.display = 'block';
+
+            formulaDetails.innerHTML = formulaHTML;
+            visualSimulation.innerHTML = '';
+            
+            const displayLimit = 200; 
+            const setsToDisplay = generatedSets.slice(0, displayLimit);
+
+            if (generatedSets.length > 0) {
+                 setsToDisplay.forEach((set, index) => {
+                    const setElement = document.createElement('div');
+                    setElement.className = 'combo-item fade-in';
+                    setElement.style.animationDelay = `${index * 0.02}s`;
+                    setElement.textContent = set.join(' ');
+                    visualSimulation.appendChild(setElement);
+                });
+
+                if(generatedSets.length > displayLimit) {
+                    const moreInfo = document.createElement('p');
+                    moreInfo.className = 'w-full text-center mt-4 text-sm text-gray-500';
+                    moreInfo.textContent = `Mostrando ${displayLimit} de ${generatedSets.length} resultados para un mejor rendimiento.`;
+                    visualSimulation.appendChild(moreInfo);
+                }
+            } else {
+                visualSimulation.innerHTML = `<p class="text-gray-500">No se generaron resultados.</p>`;
+            }
+            resultCountSpan.textContent = generatedSets.length;
+        }
+
+        // --- EVENT LISTENERS ---
+        calcTypeSelect.addEventListener('change', updateKVisibility);
+        elementTypeSelect.addEventListener('change', updateElementInput);
+        calculateBtn.addEventListener('click', handleCalculation);
+
+        // Inicialización
+        window.addEventListener('DOMContentLoaded', () => {
+            updateKVisibility();
+            updateElementInput(); // Cargar los elementos por defecto al iniciar
+        });
+    </script>
+</body>
+</html>
