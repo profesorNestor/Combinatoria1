@@ -37,6 +37,8 @@
             --text-dark: #333;
             --text-light: #555;
             --border-color: #e2e8f0;
+            --scrollbar-thumb: #a0aec0;
+            --scrollbar-thumb-hover: #718096;
         }
 
         /* Animación para la aparición de elementos */
@@ -46,7 +48,7 @@
         }
         .fade-in { animation: fadeIn 0.5s ease-in-out forwards; }
 
-        /* Estilos para los elementos de la simulación. El tamaño de la fuente se controla con Tailwind. */
+        /* Estilos para los elementos de la simulación */
         .combo-item {
             background-color: var(--bg-color);
             border: 1px solid var(--border-color);
@@ -75,6 +77,25 @@
         mjx-container {
             overflow-x: auto;
             overflow-y: hidden;
+            padding-bottom: 4px; /* Espacio para el scrollbar */
+        }
+        
+        /* Scrollbar personalizado y sofisticado para la caja de resultados */
+        #visual-simulation::-webkit-scrollbar {
+            width: 8px;
+            height: 8px;
+        }
+        #visual-simulation::-webkit-scrollbar-track {
+            background: var(--bg-color);
+            border-radius: 10px;
+        }
+        #visual-simulation::-webkit-scrollbar-thumb {
+            background: var(--scrollbar-thumb);
+            border-radius: 10px;
+            border: 2px solid var(--bg-color);
+        }
+        #visual-simulation::-webkit-scrollbar-thumb:hover {
+            background: var(--primary);
         }
     </style>
 </head>
@@ -150,13 +171,14 @@
                 <!-- Detalles del cálculo -->
                 <div class="bg-white p-4 sm:p-6 rounded-2xl shadow-lg fade-in" style="background-color: var(--card-bg); border: 1px solid var(--border-color);">
                     <h3 class="text-xl font-semibold mb-3">🔢 Detalles del Cálculo</h3>
-                    <div id="formula-details" class="text-left p-4 rounded-lg space-y-2" style="background-color: var(--bg-color);"></div>
+                    <div id="formula-details" class="text-left p-4 rounded-lg" style="background-color: var(--bg-color);"></div>
                 </div>
                 
                 <!-- Simulación visual -->
                 <div class="bg-white p-4 sm:p-6 rounded-2xl shadow-lg fade-in" style="background-color: var(--card-bg); border: 1px solid var(--border-color);">
                     <h3 class="text-xl font-semibold mb-3">🎨 Simulación Visual (<span id="result-count">0</span> resultados)</h3>
-                    <div id="visual-simulation" class="flex flex-wrap justify-center items-center p-4 rounded-lg min-h-[100px]" style="background-color: var(--bg-color);">
+                    <!-- Contenedor scrollable para los resultados -->
+                    <div id="visual-simulation" class="flex flex-wrap justify-center items-start p-4 rounded-lg max-h-[50vh] overflow-y-auto" style="background-color: var(--bg-color);">
                     </div>
                 </div>
             </div>
@@ -196,7 +218,7 @@
 
         // --- CONJUNTOS DE ELEMENTOS PREDETERMINADOS ---
         const elementSets = {
-            emojis: '🍎🍌🍇🍓🥝🥥🍍🥭',
+            emojis: '🍎 🍇🍓🥝🥥🍍🥭',
             numeros: '1234567890',
             letras: 'ABCDEFGHIJKLMNOPQRSTUVWXYZ',
             cartas: '♠️♥️♦️♣️'
@@ -212,11 +234,11 @@
         }
 
         // --- GENERADORES DE CONJUNTOS (Lógica de combinatoria) ---
-        function generateVariations(arr, k) { /* ...código sin cambios... */ const variations = []; function find(prefix) { if (prefix.length === k) { variations.push(prefix); return; } for (let i = 0; i < arr.length; i++) { if (!prefix.includes(arr[i])) { find([...prefix, arr[i]]); } } } find([]); return variations; }
-        function generateVariationsWithRepetition(arr, k) { /* ...código sin cambios... */ const variations = []; function find(prefix) { if (prefix.length === k) { variations.push(prefix); return; } for (let i = 0; i < arr.length; i++) { find([...prefix, arr[i]]); } } find([]); return variations; }
-        function generatePermutations(arr) { /* ...código sin cambios... */ if (arr.length === 0) return [[]]; const firstEl = arr[0]; const rest = arr.slice(1); const permsWithoutFirst = generatePermutations(rest); const allPermutations = []; permsWithoutFirst.forEach(perm => { for (let i = 0; i <= perm.length; i++) { const permWithFirst = [...perm.slice(0, i), firstEl, ...perm.slice(i)]; allPermutations.push(permWithFirst); } }); return allPermutations; }
-        function generateCombinations(arr, k) { /* ...código sin cambios... */ if (k > arr.length || k <= 0) return []; if (k === arr.length) return [arr]; if (k === 1) return arr.map(item => [item]); const combs = []; const head = arr[0]; const tail = arr.slice(1); const combsWithHead = generateCombinations(tail, k - 1).map(c => [head, ...c]); const combsWithoutHead = generateCombinations(tail, k); return [...combsWithHead, ...combsWithoutHead]; }
-        function generateCombinationsWithRepetition(arr, k) { /* ...código sin cambios... */ const combinations = []; function find(start, prefix) { if (prefix.length === k) { combinations.push(prefix); return; } for (let i = start; i < arr.length; i++) { find(i, [...prefix, arr[i]]); } } find(0, []); return combinations; }
+        function generateVariations(arr, k) { const variations = []; function find(prefix) { if (prefix.length === k) { variations.push(prefix); return; } for (let i = 0; i < arr.length; i++) { if (!prefix.includes(arr[i])) { find([...prefix, arr[i]]); } } } find([]); return variations; }
+        function generateVariationsWithRepetition(arr, k) { const variations = []; function find(prefix) { if (prefix.length === k) { variations.push(prefix); return; } for (let i = 0; i < arr.length; i++) { find([...prefix, arr[i]]); } } find([]); return variations; }
+        function generatePermutations(arr) { if (arr.length === 0) return [[]]; const firstEl = arr[0]; const rest = arr.slice(1); const permsWithoutFirst = generatePermutations(rest); const allPermutations = []; permsWithoutFirst.forEach(perm => { for (let i = 0; i <= perm.length; i++) { const permWithFirst = [...perm.slice(0, i), firstEl, ...perm.slice(i)]; allPermutations.push(permWithFirst); } }); return allPermutations; }
+        function generateCombinations(arr, k) { if (k > arr.length || k <= 0) return []; if (k === arr.length) return [arr]; if (k === 1) return arr.map(item => [item]); const combs = []; const head = arr[0]; const tail = arr.slice(1); const combsWithHead = generateCombinations(tail, k - 1).map(c => [head, ...c]); const combsWithoutHead = generateCombinations(tail, k); return [...combsWithHead, ...combsWithoutHead]; }
+        function generateCombinationsWithRepetition(arr, k) { const combinations = []; function find(start, prefix) { if (prefix.length === k) { combinations.push(prefix); return; } for (let i = start; i < arr.length; i++) { find(i, [...prefix, arr[i]]); } } find(0, []); return combinations; }
 
         // --- LÓGICA DE LA INTERFAZ ---
         function updateKVisibility() {
@@ -292,31 +314,29 @@
             initialMessage.style.display = 'none';
             resultsPanel.style.display = 'block';
             
-            // Actualizar detalles de la fórmula y pedir a MathJax que renderice
             formulaDetails.innerHTML = formulaLaTeX;
             if (window.MathJax) {
                 MathJax.typesetPromise([formulaDetails]).catch(err => console.log('Error MathJax: ' + err.message));
             }
             
             visualSimulation.innerHTML = '';
-            const displayLimit = 200;
-            const setsToDisplay = generatedSets.slice(0, displayLimit);
-
+            
             if (generatedSets.length > 0) {
-                 setsToDisplay.forEach((set, index) => {
+                 generatedSets.forEach((set, index) => {
                     const setElement = document.createElement('div');
-                    // Se añaden clases de texto responsivas de Tailwind
-                    setElement.className = 'combo-item fade-in text-base sm:text-lg'; 
-                    setElement.style.animationDelay = `${index * 0.02}s`;
+                    // Se quita 'fade-in' de aquí para controlarlo
+                    setElement.className = 'combo-item text-base sm:text-lg';
+                    
+                    // Se aplica la animación de entrada solo a los primeros 50 elementos
+                    // para no sobrecargar el navegador con miles de animaciones.
+                    if (index < 50) {
+                        setElement.classList.add('fade-in');
+                        setElement.style.animationDelay = `${index * 0.02}s`;
+                    }
+                    
                     setElement.textContent = set.join(' ');
                     visualSimulation.appendChild(setElement);
                 });
-                if(generatedSets.length > displayLimit) {
-                    const moreInfo = document.createElement('p');
-                    moreInfo.className = 'w-full text-center mt-4 text-sm text-gray-500';
-                    moreInfo.textContent = `Mostrando ${displayLimit} de ${generatedSets.length} resultados.`;
-                    visualSimulation.appendChild(moreInfo);
-                }
             } else {
                 visualSimulation.innerHTML = `<p class="text-gray-500">No se generaron resultados.</p>`;
             }
@@ -336,3 +356,4 @@
     </script>
 </body>
 </html>
+ 
